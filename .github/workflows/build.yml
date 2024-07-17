@@ -16,13 +16,6 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: packages.acfc.dev
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -52,7 +45,7 @@ jobs:
           docker-compose up -d
           echo "Waiting for the API to start"
           sleep 5
-          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/api/measurements)
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/accounts/measurements)
           echo "API returned $status_code status code"
           if [ $status_code -eq 201 ]; then echo "API returned 201 status code"; else echo "API did not return 201 status code"; exit 1; fi
 
@@ -60,6 +53,12 @@ jobs:
     runs-on: self-hosted
     needs: [test]
     steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: packages.acfc.dev
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
       - name: Push image to Harbor
         run: |
           COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
@@ -82,7 +81,7 @@ jobs:
     if: always()
     needs: [push-image]
     steps:
-      - name: Cleanup
-        run: |
-          docker-compose down
-          docker system prune -a -f
+      - name: Take down the containers
+        run: docker-compose down
+      - name: Remove the images
+        run: docker system prune -a -f
