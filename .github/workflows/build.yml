@@ -27,7 +27,7 @@ jobs:
       - name: Build and tag image
         run: |
           COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          docker build -t ${{ github.repository }}:$COMMIT_SHA -t ${{ github.repository }}:latest .
+          docker build -t packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA -t packages.acfc.dev/library/${{ github.repository }}:latest .
 
       - name: Push image to Harbor
         run: |
