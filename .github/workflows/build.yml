@@ -18,7 +18,7 @@ jobs:
 
       - name: Build and tag image
         run: |
-          COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+          COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
           docker build -t ${{ github.repository }}:$COMMIT_SHA .
       - name: Log in to Harbor
         run: |
@@ -26,7 +26,7 @@ jobs:
 
       - name: Build and tag image
         run: |
-            COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+            COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
             docker build -t ${{ secrets.HARBOR_REGISTRY_URL }}/library/${{ github.repository }}:$COMMIT_SHA .    
 
       - name: Push image to Harbor
