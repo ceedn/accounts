@@ -1,23 +1,26 @@
 name: Build and publish a Docker image to Harbor
 on:
+
   # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
   release:
-    types: [published]
+    types: [ published ]
+
   # publish on pushes to the main branch (image tagged as "latest")
   push:
-  
+
 jobs:
   build:
     runs-on: self-hosted
 
     steps:
-      - name: Login to GitHub Container Registry
+      -
+        name: Login to Harbor
         uses: docker/login-action@v3
         with:
           registry: packages.acfc.dev
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
-
+          
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -25,7 +28,7 @@ jobs:
         run: |
           COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
           docker build -t ${{ github.repository }}:$COMMIT_SHA .
-          docker tag ${{ github.repository }}:$COMMIT_SHA packages.acfc.dev/library/${{ github.repository }}:latest
+          docker tag ${{ github.repository }}:$COMMIT_SHA ${{ github.repository }}:latest
 
       - name: Push image to Harbor
         run: |
