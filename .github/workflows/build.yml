@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-      - development
+      - develop
     tags:
       - '*'
   pull_request:
