@@ -78,7 +78,7 @@ jobs:
 
   cleanup:
     runs-on: self-hosted
-    needs: deploy
+    needs: [test, deploy, build]
     steps:
       - name: Stop and remove test environment
         run: docker-compose down
