@@ -1,43 +1,36 @@
-pipeline {
-    agent any
-    
-    stages {
-        stage('Clone Repository') {
-            steps {
-               checkout scm
-            }
+node {
+    def app
+
+    stage('Clone repository') {
+        /* Let's make sure we have the repository cloned to our workspace */
+
+        checkout scm
+    }
+
+    stage('Build image') {
+        /* This builds the actual image; synonymous to
+         * docker build on the command line */
+
+        app = docker.build("ceedn/accountmanager")
+    }
+
+    stage('Test image') {
+        /* Ideally, we would run a test framework against our image.
+         * For this example, we're using a Volkswagen-type approach ;-) */
+
+        app.inside {
+            sh 'echo "Tests passed"'
         }
-        
-        stage('Build Image') {
-            steps {
-                script {
-                    def shaHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-                    
-                    docker.build("your-image:${shaHash}")
-                    docker.build("your-image:latest")
-                }
-            }
-        }
-        
-        stage('Login to Harbor') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'harbor', usernameVariable: 'HARBOR_USERNAME', passwordVariable: 'HARBOR_PASSWORD')]) {
-                    sh 'docker login -u $HARBOR_USERNAME -p $HARBOR_PASSWORD your-harbor-registry'
-                }
-            }
-        }
-        
-        stage('Push Image to Harbor') {
-            steps {
-                script {
-                    def shaHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-                    
-                    docker.withRegistry('https:/packages.acfc.dev/', 'credentials') {
-                        docker.image("your-image:${shaHash}").push("library/your-image:${shaHash}")
-                        docker.image("your-image:latest").push("library/your-image:latest")
-                    }
-                }
-            }
+    }
+
+    stage('Push image') {
+        /* Finally, we'll push the image with two tags:
+         * First, the incremental build number from Jenkins
+         * Second, the 'latest' tag.
+         * Pushing multiple tags is cheap, as all the layers are reused. */
+        docker.withRegistry('https://packages.acfc.dev', 'harbor') {
+            app.push("${env.BUILD_NUMBER}")
+            app.push("latest")
         }
     }
 }
