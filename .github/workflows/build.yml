@@ -32,7 +32,7 @@ jobs:
           DOCKER_TAG=""
           if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
             DOCKER_TAG="latest"
-          elif [[ ${{ github.ref }} == 'refs/heads/development' ]]; then
+          elif [[ ${{ github.ref }} == 'refs/heads/develop' ]]; then
             DOCKER_TAG="dev"
           elif [[ ${{ github.event_name }} == 'release' ]]; then
             DOCKER_TAG="stable"
@@ -40,6 +40,7 @@ jobs:
             DOCKER_TAG="${{ github.head_ref }}"
           fi
           docker build -t packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA -t packages.acfc.dev/library/${{ github.repository }}:$DOCKER_TAG .
+          docker build -t packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA -t packages.acfc.dev/library/${{ github.repository }}:latest .
 
       - name: Push image to Harbor
         run: |
@@ -47,7 +48,7 @@ jobs:
           DOCKER_TAG=""
           if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
             DOCKER_TAG="latest"
-          elif [[ ${{ github.ref }} == 'refs/heads/development' ]]; then
+          elif [[ ${{ github.ref }} == 'refs/heads/develop' ]]; then
             DOCKER_TAG="dev"
           elif [[ ${{ github.event_name }} == 'release' ]]; then
             DOCKER_TAG="stable"
