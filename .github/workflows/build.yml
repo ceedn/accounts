@@ -71,3 +71,11 @@ jobs:
           status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/api/measurements)
           echo "API returned $status_code status code"
           if [ $status_code -eq 201 ]; then echo "API returned 201 status code"; else echo "API did not return 201 status code"; exit 1; fi
+
+  cleanup:
+    runs-on: self-hosted
+    if: always()
+    needs: [test]
+    steps:
+      - name: Cleanup
+        run: docker-compose down
