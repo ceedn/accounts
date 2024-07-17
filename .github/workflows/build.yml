@@ -1,4 +1,4 @@
-name: Build and publish a Docker image to Harbor
+name: Build and test
 on:
   push:
     branches:
@@ -11,18 +11,17 @@ on:
   release:
     types: [published]
 
+stages:
+  - build
+  - deploy
+  - test
+  - cleanup
+
 jobs:
   build:
     runs-on: self-hosted
 
     steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: packages.acfc.dev
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -57,3 +56,27 @@ jobs:
           fi
           docker push packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA
           docker push packages.acfc.dev/library/${{ github.repository }}:$DOCKER_TAG
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+
+    steps:
+      - name: Deploy test environment
+        run: docker-compose up -d
+
+  test:
+    needs: [deploy, build]
+    runs-on: self-hosted
+
+    steps:
+      - name: Run tests
+        script: 
+          - status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/api/measurements)
+          - if [ $status_code -eq 201 ]; then echo "API returned 201 status code"; else echo "API did not return 201 status code"; exit 1; fi
+  cleanup:
+    runs-on: self-hosted
+
+    steps:
+      - name: Stop and remove test environment
+        run: docker-compose down
