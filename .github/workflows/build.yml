@@ -35,4 +35,6 @@ jobs:
             docker build -t packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA .    
 
       - name: Push image to Harbor
-        run: docker push packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA
+        run: |
+          COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          docker push packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA
