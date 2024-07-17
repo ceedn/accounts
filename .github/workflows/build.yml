@@ -1,4 +1,4 @@
-name: Build and publish a Docker image to Harbor
+name: Build and test
 on:
   push:
     branches:
@@ -16,13 +16,6 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: packages.acfc.dev
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -32,23 +25,47 @@ jobs:
           DOCKER_TAG=""
           if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
             DOCKER_TAG="latest"
-          elif [[ ${{ github.ref }} == 'refs/heads/development' ]]; then
+          elif [[ ${{ github.ref }} == 'refs/heads/develop' ]]; then
             DOCKER_TAG="dev"
           elif [[ ${{ github.event_name }} == 'release' ]]; then
             DOCKER_TAG="stable"
           elif [[ ${{ github.event_name }} == 'pull_request' ]]; then
             DOCKER_TAG="${{ github.head_ref }}"
           fi
-          docker build -t ${{ github.repository }}:$COMMIT_SHA .
-          docker tag ${{ github.repository }}:$COMMIT_SHA ${{ github.repository }}:$DOCKER_TAG
+          docker build -t packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA -t packages.acfc.dev/library/${{ github.repository }}:$DOCKER_TAG .
+          docker build -t packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA -t packages.acfc.dev/library/${{ github.repository }}:latest .
 
+  test:
+    runs-on: self-hosted
+    needs: [build]
+    steps:
+      - name: Test
+        run: |
+          echo "Testing the API"
+          docker-compose up -d
+          echo "Waiting for the API to start"
+          sleep 5
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/accounts/measurements)
+          echo "API returned $status_code status code"
+          if [ $status_code -eq 200 ]; then echo "API returned 200 status code"; else echo "API did not return 200 status code"; exit 1; fi
+
+  push-image:
+    runs-on: self-hosted
+    needs: [test]
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: packages.acfc.dev
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
       - name: Push image to Harbor
         run: |
           COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
           DOCKER_TAG=""
           if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
             DOCKER_TAG="latest"
-          elif [[ ${{ github.ref }} == 'refs/heads/development' ]]; then
+          elif [[ ${{ github.ref }} == 'refs/heads/develop' ]]; then
             DOCKER_TAG="dev"
           elif [[ ${{ github.event_name }} == 'release' ]]; then
             DOCKER_TAG="stable"
@@ -57,3 +74,14 @@ jobs:
           fi
           docker push packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA
           docker push packages.acfc.dev/library/${{ github.repository }}:$DOCKER_TAG
+
+
+  cleanup:
+    runs-on: self-hosted
+    if: always()
+    needs: [push-image]
+    steps:
+      - name: Take down the containers
+        run: docker-compose down
+      - name: Remove the images
+        run: docker system prune -a -f
