@@ -11,12 +11,6 @@ on:
   release:
     types: [published]
 
-stages:
-  - build
-  - deploy
-  - test
-  - cleanup
-
 jobs:
   build:
     runs-on: self-hosted
@@ -74,9 +68,10 @@ jobs:
         run: |
           status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/api/measurements)
           if [ $status_code -eq 201 ]; then echo "API returned 201 status code"; else echo "API did not return 201 status code"; exit 1; fi
+
   cleanup:
     runs-on: self-hosted
-
+    needs: deploy
     steps:
       - name: Stop and remove test environment
         run: docker-compose down
