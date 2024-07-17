@@ -23,6 +23,13 @@ jobs:
       - name: Log in to Harbor
         run: |
             echo ${{ secrets.HARBOR_CREDENTIALS }} | base64 --decode | docker login -u $(cut -d ':' -f1 <<< "${{ secrets.HARBOR_CREDENTIALS }}") --password-stdin ${{ secrets.HARBOR_REGISTRY_URL }}
+      -  
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: packages.acfc.dev
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
 
       - name: Build and tag image
         run: |
