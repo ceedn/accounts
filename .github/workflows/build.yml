@@ -58,28 +58,13 @@ jobs:
           docker push packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA
           docker push packages.acfc.dev/library/${{ github.repository }}:$DOCKER_TAG
 
-  deploy:
-    needs: build
-    runs-on: self-hosted
-
-    steps:
-      - name: Deploy test environment
-        run: docker-compose up -d
-
   test:
-    needs: [deploy, build]
     runs-on: self-hosted
-
+    needs: [build]
     steps:
-      - name: Run tests
+      - name: Test
         run: |
-          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/api/measurements)
-          if [ $status_code -eq 201 ]; then echo "API returned 201 status code"; else echo "API did not return 201 status code"; exit 1; fi
-
-  cleanup:
-    if: always()
-    runs-on: self-hosted
-    needs: [test, deploy, build]
-    steps:
-      - name: Stop and remove test environment
-        run: docker-compose down
+        docker-compose up -d
+        status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/api/measurements)
+        if [ $status_code -eq 201 ]; then echo "API returned 201 status code"; else echo "API did not return 201 status code"; exit 1; fi
+        docker-compose down
