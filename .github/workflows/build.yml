@@ -42,6 +42,24 @@ jobs:
           docker build -t packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA -t packages.acfc.dev/library/${{ github.repository }}:$DOCKER_TAG .
           docker build -t packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA -t packages.acfc.dev/library/${{ github.repository }}:latest .
 
+  test:
+    runs-on: self-hosted
+    needs: [build]
+    steps:
+      - name: Test
+        run: |
+          echo "Testing the API"
+          docker-compose up -d
+          echo "Waiting for the API to start"
+          sleep 5
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/api/measurements)
+          echo "API returned $status_code status code"
+          if [ $status_code -eq 201 ]; then echo "API returned 201 status code"; else echo "API did not return 201 status code"; exit 1; fi
+
+  push-image:
+    runs-on: self-hosted
+    needs: [test]
+    steps:
       - name: Push image to Harbor
         run: |
           COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
@@ -58,19 +76,6 @@ jobs:
           docker push packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA
           docker push packages.acfc.dev/library/${{ github.repository }}:$DOCKER_TAG
 
-  test:
-    runs-on: self-hosted
-    needs: [build]
-    steps:
-      - name: Test
-        run: |
-          echo "Testing the API"
-          docker-compose up -d
-          echo "Waiting for the API to start"
-          sleep 5
-          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/api/measurements)
-          echo "API returned $status_code status code"
-          if [ $status_code -eq 201 ]; then echo "API returned 201 status code"; else echo "API did not return 201 status code"; exit 1; fi
 
   cleanup:
     runs-on: self-hosted
@@ -78,4 +83,6 @@ jobs:
     needs: [test]
     steps:
       - name: Cleanup
-        run: docker-compose down
+        run: |
+          docker-compose down
+          docker system prune -a -f
