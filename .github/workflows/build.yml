@@ -80,7 +80,7 @@ jobs:
   cleanup:
     runs-on: self-hosted
     if: always()
-    needs: [test]
+    needs: [push-image]
     steps:
       - name: Cleanup
         run: |
