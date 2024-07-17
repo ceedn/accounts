@@ -13,13 +13,6 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Build and tag image
-        run: |
-          COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          docker build -t ${{ github.repository }}:$COMMIT_SHA .
       -
         name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -27,6 +20,14 @@ jobs:
           registry: packages.acfc.dev
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
+          
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build and tag image
+        run: |
+          COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          docker build -t ${{ github.repository }}:$COMMIT_SHA .
 
       - name: Build and tag image
         run: |
