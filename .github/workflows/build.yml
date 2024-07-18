@@ -83,7 +83,7 @@ jobs:
     steps:
       - name: Take down the containers
         run: |
-          docker-compose -f .\compose-test.yml down 
+          docker-compose -f compose-test.yml down 
           docker-compose down
       - name: Remove the images
         run: docker system prune -a -f
