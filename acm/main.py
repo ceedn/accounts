@@ -6,7 +6,7 @@ start_time = datetime.datetime.now()
 
 @app.get("/")
 async def read_root(request: Request):
-    return {"message": "Hello World!!!!"}
+    return {"message": "Hello World!!"}
 
 @app.get("/accounts/measurements")
 async def read_uptime(request: Request):
