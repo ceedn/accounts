@@ -42,7 +42,7 @@ jobs:
       - name: Test
         run: |
           echo "Testing the API"
-          docker-compose up -d
+          docker-compose -f compose-test.yml up -d --build
           echo "Waiting for the API to start"
           sleep 5
           status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/accounts/measurements)
@@ -82,6 +82,21 @@ jobs:
     needs: [push-image]
     steps:
       - name: Take down the containers
-        run: docker-compose down
+        run: |
+          docker-compose -f compose-test.yml down 
+          docker-compose down
       - name: Remove the images
-        run: docker system prune -a -f
+        run: |
+          COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          DOCKER_TAG=""
+          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+            DOCKER_TAG="latest"
+          elif [[ ${{ github.ref }} == 'refs/heads/develop' ]]; then
+            DOCKER_TAG="dev"
+          elif [[ ${{ github.event_name }} == 'release' ]]; then
+            DOCKER_TAG="stable"
+          elif [[ ${{ github.event_name }} == 'pull_request' ]]; then
+            DOCKER_TAG="${{ github.head_ref }}"
+          fi
+          docker rmi packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA
+          docker rmi packages.acfc.dev/library/${{ github.repository }}:$DOCKER_TAG
