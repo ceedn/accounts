@@ -42,7 +42,7 @@ jobs:
       - name: Test
         run: |
           echo "Testing the API"
-          docker-compose -f compose-test.yml up -d
+          docker-compose -f compose-test.yml up -d --build
           echo "Waiting for the API to start"
           sleep 5
           status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/accounts/measurements)
