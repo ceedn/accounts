@@ -87,5 +87,16 @@ jobs:
           docker-compose down
       - name: Remove the images
         run: |
+          COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          DOCKER_TAG=""
+          if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
+            DOCKER_TAG="latest"
+          elif [[ ${{ github.ref }} == 'refs/heads/develop' ]]; then
+            DOCKER_TAG="dev"
+          elif [[ ${{ github.event_name }} == 'release' ]]; then
+            DOCKER_TAG="stable"
+          elif [[ ${{ github.event_name }} == 'pull_request' ]]; then
+            DOCKER_TAG="${{ github.head_ref }}"
+          fi
           docker rmi packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA
           docker rmi packages.acfc.dev/library/${{ github.repository }}:$DOCKER_TAG
