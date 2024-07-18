@@ -86,4 +86,6 @@ jobs:
           docker-compose -f compose-test.yml down 
           docker-compose down
       - name: Remove the images
-        run: docker system prune -a -f
+        run: |
+          docker rmi packages.acfc.dev/library/${{ github.repository }}:$COMMIT_SHA
+          docker rmi packages.acfc.dev/library/${{ github.repository }}:$DOCKER_TAG
