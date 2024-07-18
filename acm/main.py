@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
 import datetime
 from utils import utils
-from schemas import schemas
-from models import models
+from schemas import schemas as schemas
+from models import models as models
 from fastapi.responses import JSONResponse
 import sys, os
 from sqlalchemy import create_engine
@@ -28,10 +28,8 @@ if os.environ.get("DB_INIT") == "True":
     try:
         databaseModel.create_all(bind=engine)
     except Exception as err:
-        print("Failed to create tables.")
+        raise
         sys.exit(1)
-    else:
-        print("Created tables!")
 
 app = FastAPI()
 start_time = datetime.datetime.now()

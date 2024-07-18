@@ -4,7 +4,6 @@ services:
     image: 'postgres:latest'
     ports:
       - 5432:5432
-
     environment:
       POSTGRES_USER: ceedn
       POSTGRES_PASSWORD: ceedn 
@@ -18,10 +17,11 @@ services:
   account_manager:
     build: .
     depends_on:
-      database:
-        condition: service_healthy
+      - database
     environment:
-      - DB_URL=postgresql://ceedn:ceedn@127.0.0.1/ceedn-dev
+      - DB_URL=postgresql://ceedn:ceedn@database/ceedn-dev
       - DB_INIT=True
     ports:
       - "8080:8080"
+    links:
+      - database
