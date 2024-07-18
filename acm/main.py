@@ -23,8 +23,15 @@ except Exception as err:
     print("Failed to initialize database engine. Exiting.")
     sys.exit(1)
 
-
-
+# Generate tables in the database if they don't exist
+if os.environ.get("DB_INIT") == "True":
+    try:
+        databaseModel.create_all(bind=engine)
+    except Exception as err:
+        print("Failed to create tables.")
+        sys.exit(1)
+    else:
+        print("Created tables!")
 
 app = FastAPI()
 start_time = datetime.datetime.now()

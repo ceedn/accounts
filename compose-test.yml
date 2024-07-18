@@ -22,5 +22,6 @@ services:
         condition: service_healthy
     environment:
       - DB_URL=postgresql://ceedn:ceedn@127.0.0.1/ceedn-dev
+      - DB_INIT=True
     ports:
       - "8080:8080"
