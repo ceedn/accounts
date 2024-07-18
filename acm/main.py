@@ -9,6 +9,23 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
+
+# Initialize the database engine
+
+try:
+    DatabaseURL = os.environ.get("DB_URL")
+    engine = create_engine(DatabaseURL)
+    database = Session(engine)
+    databaseModel = models.metadata
+    databaseModel.bind = engine
+    print("Initilized database engine.")
+except Exception as err:
+    print("Failed to initialize database engine. Exiting.")
+    sys.exit(1)
+
+
+
+
 app = FastAPI()
 start_time = datetime.datetime.now()
 
