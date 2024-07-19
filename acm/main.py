@@ -8,7 +8,7 @@ import sys, os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
-
+from uuid import UUIDv4
 
 # Initialize the database engine
 
@@ -33,6 +33,7 @@ if os.environ.get("DB_INIT") == "True":
 
 app = FastAPI()
 start_time = datetime.datetime.now()
+instanceID = str(UUIDv4())
 
 @app.get("/",
          status_code=200,
@@ -51,5 +52,4 @@ async def root():
 
 @app.get("/accounts/measurements")
 async def read_uptime(request: Request):
-    uptime = datetime.datetime.now() - start_time
-    return {"uptime": uptime}
+    return {f"{instanceID}"}
