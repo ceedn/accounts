@@ -45,7 +45,7 @@ jobs:
           docker-compose -f compose-test.yml up -d --build
           echo "Waiting for the API to start"
           sleep 5
-          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/accounts/measurements)
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/measurements)
           echo "API returned $status_code status code"
           if [ $status_code -eq 200 ]; then echo "API returned 200 status code"; else echo "API did not return 200 status code"; exit 1; fi
 

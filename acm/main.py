@@ -11,7 +11,6 @@ from sqlalchemy import desc
 from uuid import uuid4
 
 # Initialize the database engine
-
 try:
     DatabaseURL = os.environ.get("DB_URL")
     engine = create_engine(DatabaseURL)
@@ -31,11 +30,16 @@ if os.environ.get("DB_INIT") == "True":
         raise
         sys.exit(1)
 
+# Get root path of the API
+rootPath = os.environ.get("API_ROOT_PATH")
+if rootPath == None:
+    rootPath = "/"
+
 app = FastAPI()
 start_time = datetime.datetime.now()
 instanceID = str(uuid4())
 
-@app.get("/",
+@app.get(rootPath,
          status_code=200,
          name="API - Root",
          description="Return an error message on the root of the API, since nothing should be performed here.",
@@ -50,6 +54,6 @@ async def root():
     }
 
 
-@app.get("/accounts/measurements")
+@app.get(rootPath + "measurements")
 async def read_uptime(request: Request):
     return {f"{instanceID}"}
