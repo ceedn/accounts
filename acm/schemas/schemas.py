@@ -39,9 +39,10 @@ class APIRootResponse(BaseModel):
     
 class APIStatusResponse(BaseModel):
     success: bool = True
-    name: str = "TAuth API"
+    name: str = "CeeDN Accounts Microservice"
     uptime: str = "0000:00:00:00"
-    commit_hash: str = "00000000" # Disabled if debug level is higher than DEBUG
+    instanceID: str = "uuid4"
+    
     
 
 # API Errors

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-import datetime
+import datetime, time
 from utils import utils
 from schemas import schemas as schemas
 from models import models as models
@@ -9,6 +9,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from uuid import uuid4
+
+# Get start time of script
+# This is used to calculate uptime, which is exposed in the status endpoint.
+ServerStartTime = time.time()
 
 # Initialize the database engine
 try:
@@ -54,6 +58,19 @@ async def root():
     }
 
 
-@app.get(rootPath + "measurements")
-async def read_uptime(request: Request):
-    return {f"{instanceID}"}
+@app.get(
+    rootPath + "measurements",
+    status_code=200,
+    name="API - Measurements",
+    description="Return status information about the API",
+    tags=["Information"],
+    response_model=schemas.APIStatusResponse,
+)
+async def status():
+    uptime_in_seconds = time.time() - ServerStartTime
+    clean_uptime = utils.GetNiceTime(uptime_in_seconds)
+    return {
+        "hostname": os.uname()[1],
+        "uptime": clean_uptime,
+        "instanceID": instanceID,
+    }
