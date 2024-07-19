@@ -20,7 +20,7 @@ try:
     databaseModel.bind = engine
     print("Initilized database engine.")
 except Exception as err:
-    print("Failed to initialize database engine. Exiting.")
+    raise
     sys.exit(1)
 
 # Generate tables in the database if they don't exist
