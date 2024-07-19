@@ -8,7 +8,7 @@ import sys, os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
-from uuid import UUIDv4
+from uuid import uuid4
 
 # Initialize the database engine
 
@@ -33,7 +33,7 @@ if os.environ.get("DB_INIT") == "True":
 
 app = FastAPI()
 start_time = datetime.datetime.now()
-instanceID = str(UUIDv4())
+instanceID = str(uuid4())
 
 @app.get("/",
          status_code=200,
