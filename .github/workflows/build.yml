@@ -84,7 +84,6 @@ jobs:
       - name: Take down the containers
         run: |
           docker-compose -f compose-test.yml down 
-          docker-compose down
       - name: Remove the images
         run: |
           COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
