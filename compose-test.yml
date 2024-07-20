@@ -25,10 +25,3 @@ services:
       - "8080:8080"
     links:
       - database
-    develop:
-      watch:
-        - action: rebuild
-          path: requirements.txt
-        - action: sync
-          path: ./acm
-          target: /app
