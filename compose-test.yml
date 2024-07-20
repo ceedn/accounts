@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: ceedn
       POSTGRES_PASSWORD: ceedn 
-      POSTGRES_DB: ceedn-dev
+      POSTGRES_DB: ceedn
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ceedn"]
       interval: 10s
@@ -19,9 +19,16 @@ services:
     depends_on:
       - database
     environment:
-      - DB_URL=postgresql://ceedn:ceedn@database/ceedn-dev
+      - DB_URL=postgresql://ceedn:ceedn@database/ceedn
       - DB_INIT=True
     ports:
       - "8080:8080"
     links:
       - database
+    develop:
+      watch:
+        - action: rebuild
+          path: requirements.txt
+        - action: sync
+          path: ./acm
+          target: /app
